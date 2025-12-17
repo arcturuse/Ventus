@@ -1,10 +1,10 @@
+
 import React, { useRef, useState } from 'react';
-import { Transaction, ProductCost, ShippingRate, Settings } from '../types';
+import { Transaction, ProductCost, ShippingRate, Settings, TransactionType } from '../types';
 import { Icon } from '../components/Icons';
 import { useToast } from '../components/ToastProvider';
 import { TableSkeleton } from '../components/Skeleton';
 import { mapShopierRowToTransactions } from '../services/shopierMapper';
-import * as XLSX from 'xlsx';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -27,11 +27,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
     reader.onload = (evt) => {
       try {
         const bstr = evt.target?.result;
-        if (typeof bstr !== 'string') throw new Error('Geçersiz dosya içeriği');
-        
-        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wb = (window as any).XLSX.read(bstr, { type: 'binary' });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const data: any[] = XLSX.utils.sheet_to_json(ws);
+        const data: any[] = (window as any).XLSX.utils.sheet_to_json(ws);
         
         let allMapped: Transaction[] = [];
         data.forEach((row, i) => {

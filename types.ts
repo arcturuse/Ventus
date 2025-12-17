@@ -4,6 +4,13 @@ export enum TransactionType {
   EXPENSE = 'expense'
 }
 
+export interface LabelDesign {
+  id: string;
+  name: string;
+  imageUrl: string;
+  matchKeyword: string;
+}
+
 export interface Transaction {
   id: string;
   type: TransactionType;
@@ -20,10 +27,12 @@ export interface Transaction {
 
 export interface ProductCost {
   key: string; 
-  wholesalePricePerKg: number; 
-  weight: number; 
+  wholesalePricePerKg: number; // Kafeye ödenen toptan KG fiyatı
+  weight: number; // Paket ağırlığı (kg)
+  stock?: number;
 }
 
+// Added ShippingRate interface to define the structure for delivery pricing based on weight (desi)
 export interface ShippingRate {
   id: string;
   minWeight: number;
@@ -31,71 +40,46 @@ export interface ShippingRate {
   price: number;
 }
 
-export interface ShopifyConfig {
-  shopUrl: string;
-  accessToken: string;
-}
-
-/**
- * Settings interface expanded to include all properties used in the app.
- */
 export interface Settings {
   commissionRate: number;
-  fixedFee?: number;
+  fixedFee: number;
   costPerPack: number;
   costPerKgDefault: number;
   monthlyTarget: number;
   monthlyKgTarget: number;
-  targetMargin?: number;
-  firebaseConfig?: any;
-  shopifyConfig?: ShopifyConfig;
+  targetMargin: number;
   quoteSettings: {
-    businessName: string;
     showTax: boolean;
+    showTerms: boolean;
+    businessName: string;
     logoUrl?: string;
     footerNote?: string;
-    showTerms?: boolean;
-    showTotalWeight?: boolean;
+    showTotalWeight: boolean;
   };
 }
 
 export type LeadStatus = 'new' | 'emailed' | 'responded';
 
-/**
- * Lead interface expanded to include metadata used in Lead Hunter.
- */
 export interface Lead {
   id: string;
   companyName: string;
   category: string;
+  contactPerson: string;
   email: string;
   website: string;
   status: LeadStatus;
   relevanceScore: number;
-  contactPerson?: string;
-  notes?: string;
-  suggestedPackage?: { 
-    packageName?: string;
-    monthlyKg: number; 
-    price: number; 
+  notes: string;
+  lastContactDate?: string;
+  suggestedPackage?: {
+    packageName: string;
+    monthlyKg: number;
+    price: number;
   };
 }
 
-/**
- * Toast interface for the notification system.
- */
 export interface Toast {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info';
-}
-
-/**
- * LabelDesign interface for the Label Studio.
- */
-export interface LabelDesign {
-  id: string;
-  name: string;
-  imageUrl: string;
-  matchKeyword: string;
 }

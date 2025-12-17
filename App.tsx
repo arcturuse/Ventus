@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { ToastProvider, useToast } from './components/ToastProvider';
 import { Icon } from './components/Icons';
 import { Transaction, TransactionType, ProductCost, ShippingRate, Settings, Lead, LabelDesign } from './types';
 import { storage } from './services/storage';
-import { initFirebase, syncCollection, saveDataToCloud, deleteDataFromCloud } from './services/firebase';
-
-// Views
 import { Dashboard } from './views/Dashboard';
 import { TransactionList } from './views/TransactionList';
 import { ProductManagement } from './views/ProductManagement';
@@ -20,10 +18,6 @@ import { GenericSkeleton } from './components/Skeleton';
 const AppContent: React.FC = () => {
   const [view, setView] = useState('dashboard');
   const [loading, setLoading] = useState(true);
-  const [isCloudActive, setIsCloudActive] = useState(false);
-  const { addToast } = useToast();
-
-  // Yerel States (Başlangıç verisi localStorage'dan gelir)
   const [transactions, setTransactions] = useState<Transaction[]>(() => storage.load('transactions', []));
   const [productCosts, setProductCosts] = useState<ProductCost[]>(() => storage.load('productCosts', []));
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>(() => storage.load('shippingRates', []));
@@ -32,12 +26,11 @@ const AppContent: React.FC = () => {
   const [settings, setSettings] = useState<Settings>(() => storage.load('settings', {
     commissionRate: 4.99,
     fixedFee: 0.49,
-    costPerPack: 15,
+    costPerPack: 15, // Kutu + Etiket + Bant vs.
     costPerKgDefault: 450,
     monthlyTarget: 100000,
     monthlyKgTarget: 100,
     targetMargin: 25,
-    firebaseConfig: null,
     quoteSettings: {
       showTax: true,
       showTerms: true,
@@ -48,30 +41,6 @@ const AppContent: React.FC = () => {
     }
   }));
 
-  // Firebase Real-time Sync
-  useEffect(() => {
-    if (settings.firebaseConfig) {
-      const db = initFirebase(settings.firebaseConfig);
-      if (db) {
-        setIsCloudActive(true);
-        
-        // Koleksiyonları Dinle
-        const unsubTrans = syncCollection("transactions", (data) => setTransactions(data as Transaction[]));
-        const unsubCosts = syncCollection("productCosts", (data) => setProductCosts(data as ProductCost[]));
-        const unsubLeads = syncCollection("leads", (data) => setLeads(data as Lead[]));
-        const unsubLabels = syncCollection("labels", (data) => setLabels(data as LabelDesign[]));
-        
-        return () => {
-          unsubTrans?.();
-          unsubCosts?.();
-          unsubLeads?.();
-          unsubLabels?.();
-        };
-      }
-    }
-  }, [settings.firebaseConfig]);
-
-  // Veri her değiştiğinde localStorage'a yedekle
   useEffect(() => {
     storage.save('transactions', transactions);
     storage.save('productCosts', productCosts);
@@ -82,25 +51,9 @@ const AppContent: React.FC = () => {
   }, [transactions, productCosts, shippingRates, settings, leads, labels]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 300);
+    const timer = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timer);
   }, [view]);
-
-  // CRUD Wrapper Functions (Bulut senkronizasyonu için)
-  const handleSetTransactions = (newTrans: Transaction[]) => {
-    setTransactions(newTrans);
-    if (isCloudActive) {
-      // Sadece yeni veya değişenleri gönder (Basitleştirilmiş)
-      newTrans.forEach(t => saveDataToCloud("transactions", t.id, t));
-    }
-  };
-
-  const handleSetProductCosts = (newCosts: ProductCost[]) => {
-    setProductCosts(newCosts);
-    if (isCloudActive) {
-      newCosts.forEach(c => saveDataToCloud("productCosts", c.key.replace(/\//g, '_'), c));
-    }
-  };
 
   const stats = useMemo(() => {
     let totalIncome = 0;
@@ -111,16 +64,21 @@ const AppContent: React.FC = () => {
 
     transactions.forEach(t => {
       if (t.type === TransactionType.INCOME) {
-        totalIncome += (t.amount || 0);
-        totalWeight += (t.weight || 0);
+        totalIncome += t.amount;
+        totalWeight += t.weight;
         
-        const prodName = t.description ? t.description.split(' x')[0].trim() : '';
+        // Ürün adını description'dan çekip maliyeti bulalım
+        const prodName = t.description.split(' x')[0].trim();
         const costInfo = productCosts.find(pc => pc.key.includes(prodName));
+        
+        // Kafeye ödenen toptan fiyat
         const unitCost = costInfo?.wholesalePricePerKg || settings.costPerKgDefault;
         estimatedCoffeeCost += (t.weight * unitCost);
+        
+        // Paketleme maliyeti
         estimatedPackagingCost += settings.costPerPack;
       } else {
-        totalExpense += (t.amount || 0);
+        totalExpense += t.amount;
       }
     });
 
@@ -157,9 +115,9 @@ const AppContent: React.FC = () => {
     if (loading) return <GenericSkeleton />;
     switch (view) {
       case 'dashboard': return <Dashboard stats={stats} transactions={transactions} />;
-      case 'transactions': return <TransactionList transactions={transactions} onSetTransactions={handleSetTransactions} productCosts={productCosts} shippingRates={shippingRates} settings={settings} />;
-      case 'products': return <ProductManagement costs={productCosts} onSetCosts={handleSetProductCosts} />;
-      case 'labels': return <LabelStudio labels={labels} onSetLabels={setLabels} transactions={transactions} onSetTransactions={handleSetTransactions} />;
+      case 'transactions': return <TransactionList transactions={transactions} onSetTransactions={setTransactions} productCosts={productCosts} shippingRates={shippingRates} settings={settings} />;
+      case 'products': return <ProductManagement costs={productCosts} onSetCosts={setProductCosts} />;
+      case 'labels': return <LabelStudio labels={labels} onSetLabels={setLabels} transactions={transactions} onSetTransactions={setTransactions} />;
       case 'b2b': return <B2BGenerator settings={settings} onSetSettings={setSettings} shippingRates={shippingRates} />;
       case 'leads': return <LeadCenter leads={leads} onSetLeads={setLeads} />;
       case 'growth': return <GrowthCenter transactions={transactions} settings={settings} />;
@@ -176,7 +134,7 @@ const AppContent: React.FC = () => {
           <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md"><Icon name="Coffee" className="text-amber-400" size={24} /></div>
           <h1 className="text-lg font-black text-white leading-tight tracking-tighter uppercase italic">VENTUS<br/><span className="text-[10px] text-amber-200/50 uppercase font-black tracking-[0.2em] not-italic">PRO ROAST</span></h1>
         </div>
-        <nav className="flex flex-col gap-3 overflow-y-auto max-h-[70vh] pr-2">
+        <nav className="flex flex-col gap-3 overflow-y-auto max-h-[80vh] pr-2">
           <NavItem name="dashboard" icon="LayoutDashboard" label="Panel" />
           <NavItem name="transactions" icon="ShoppingBag" label="Siparişler" />
           <NavItem name="intel" icon="BrainCircuit" label="Tedarik Zekası" />
@@ -187,13 +145,6 @@ const AppContent: React.FC = () => {
           <NavItem name="growth" icon="Rocket" label="Büyüme" />
           <NavItem name="settings" icon="Settings" label="Ayarlar" />
         </nav>
-
-        {isCloudActive && (
-          <div className="mt-auto p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-3">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Bulut Aktif</span>
-          </div>
-        )}
       </aside>
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 coffee-gradient z-50 px-2 py-4 safe-bottom flex justify-around items-center shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
@@ -210,14 +161,12 @@ const AppContent: React.FC = () => {
               <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">
                 {view === 'transactions' ? 'Shopier Excel İşleme' : 
                  view === 'intel' ? 'Kafeden Tedarik' : 
-                 view === 'products' ? 'Toptan Alış Fiyatları' : view.toUpperCase()}
+                 view === 'products' ? 'Toptan Alış Fiyatları' : view}
               </h2>
               <p className="text-slate-400 text-xs font-bold mt-1 uppercase tracking-widest">{new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
            </div>
         </header>
-        <Suspense fallback={<GenericSkeleton />}>
-          {renderViewContent()}
-        </Suspense>
+        {renderViewContent()}
       </main>
     </div>
   );
