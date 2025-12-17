@@ -4,77 +4,108 @@ import { Settings, ShippingRate } from '../types';
 import { Icon } from '../components/Icons';
 import { useToast } from '../components/ToastProvider';
 
+/**
+ * Updated interface to accept shipping rate props passed from App.tsx
+ */
 interface SettingsViewProps {
   settings: Settings;
   onSetSettings: (s: Settings) => void;
   shippingRates: ShippingRate[];
-  onSetShippingRates: (r: ShippingRate[]) => void;
+  onSetShippingRates: (rates: ShippingRate[]) => void;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSetSettings, shippingRates, onSetShippingRates }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ 
+  settings, 
+  onSetSettings,
+  shippingRates,
+  onSetShippingRates
+}) => {
   const { addToast } = useToast();
   const [localSettings, setLocalSettings] = useState(settings);
+  const [fbConfig, setFbConfig] = useState(settings.firebaseConfig ? JSON.stringify(settings.firebaseConfig, null, 2) : '');
 
-  const saveSettings = () => {
-    onSetSettings(localSettings);
-    addToast('Ayarlar başarıyla güncellendi.', 'success');
+  const save = () => {
+    try {
+      const updated = { ...localSettings };
+      if (fbConfig.trim()) {
+        updated.firebaseConfig = JSON.parse(fbConfig);
+      }
+      onSetSettings(updated);
+      addToast('Tüm ayarlar başarıyla kaydedildi!', 'success');
+      if (fbConfig.trim() && !settings.firebaseConfig) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } catch (e) {
+      addToast('Firebase Config formatı hatalı!', 'error');
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      <section className="premium-card p-10">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="p-4 bg-emerald-50 text-emerald-600 rounded-[1.5rem] shadow-sm">
-            <Icon name="CreditCard" size={24} />
+    <div className="max-w-4xl mx-auto space-y-8 pb-32">
+      <section className="premium-card p-10 bg-slate-900 text-white border-none shadow-2xl overflow-hidden relative">
+        <div className="relative z-10">
+          <h3 className="text-2xl font-black uppercase italic flex items-center gap-3">
+            <Icon name="Cloud" className="text-amber-500" /> Bulut Bağlantısı (Firebase)
+          </h3>
+          <p className="text-slate-400 text-xs mt-2 mb-6 font-medium">Cihazlar arası anlık senkronizasyon için config kodunu buraya yapıştırın.</p>
+          <textarea 
+            value={fbConfig}
+            onChange={e => setFbConfig(e.target.value)}
+            className="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 font-mono text-[11px] text-emerald-400 outline-none focus:border-amber-500"
+            placeholder='{ "apiKey": "...", ... }'
+          />
+        </div>
+        <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl"></div>
+      </section>
+
+      <section className="premium-card p-10 bg-white">
+        <h3 className="text-xl font-black text-slate-800 uppercase italic mb-6 flex items-center gap-3">
+          <Icon name="ShoppingBag" className="text-emerald-600" /> Shopify Entegrasyonu
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mağaza URL (myshopify.com)</label>
+            <input 
+              type="text" 
+              value={localSettings.shopifyConfig?.shopUrl || ''}
+              onChange={e => setLocalSettings({...localSettings, shopifyConfig: {...(localSettings.shopifyConfig || {accessToken:''}), shopUrl: e.target.value}})}
+              className="w-full p-4 bg-slate-50 border rounded-2xl text-sm font-bold"
+              placeholder="https://magaza-adi.myshopify.com"
+            />
           </div>
-          <div>
-             <h3 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Finansal Parametreler</h3>
-             <p className="text-xs text-slate-400 font-medium">Shopier kesintileri ve paketleme maliyetleri.</p>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Admin Access Token</label>
+            <input 
+              type="password" 
+              value={localSettings.shopifyConfig?.accessToken || ''}
+              onChange={e => setLocalSettings({...localSettings, shopifyConfig: {...(localSettings.shopifyConfig || {shopUrl:''}), accessToken: e.target.value}})}
+              className="w-full p-4 bg-slate-50 border rounded-2xl text-sm font-bold"
+              placeholder="shpat_..."
+            />
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Shopier Komisyon Oranı (%)</label>
-            <div className="relative">
-              <input type="number" step="0.1" value={localSettings.commissionRate} onChange={e => setLocalSettings({...localSettings, commissionRate: parseFloat(e.target.value)})} className="w-full p-5 bg-slate-50 border border-slate-100 rounded-3xl font-black text-2xl text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500" />
-              <span className="absolute right-6 top-6 text-slate-300 font-black">%</span>
-            </div>
+        <p className="text-[10px] text-slate-400 mt-4 italic">Not: Tarayıcı CORS engeli nedeniyle bağlantı kurulamazsa Shopify panelinden sipariş CSV'si indirip "Siparişler" kısmından manuel yükleyebilirsiniz.</p>
+      </section>
+
+      <section className="premium-card p-10 bg-white">
+        <h3 className="text-xl font-black text-slate-800 uppercase italic mb-6 flex items-center gap-3">
+          <Icon name="Target" className="text-rose-600" /> Hedefler ve Maliyetler
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aylık Ciro Hedefi (₺)</label>
+            <input type="number" value={localSettings.monthlyTarget} onChange={e => setLocalSettings({...localSettings, monthlyTarget: parseFloat(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-xl" />
           </div>
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Paketleme & Sarf Maliyeti (₺)</label>
-            <div className="relative">
-              <input type="number" value={localSettings.costPerPack} onChange={e => setLocalSettings({...localSettings, costPerPack: parseFloat(e.target.value)})} className="w-full p-5 bg-slate-50 border border-slate-100 rounded-3xl font-black text-2xl text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500" />
-              <span className="absolute right-6 top-6 text-slate-300 font-black">₺</span>
-            </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Paket Başı Sarf (₺)</label>
+            <input type="number" value={localSettings.costPerPack} onChange={e => setLocalSettings({...localSettings, costPerPack: parseFloat(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-xl" />
           </div>
         </div>
       </section>
 
-      <section className="premium-card p-10">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="p-4 bg-amber-50 text-amber-600 rounded-[1.5rem] shadow-sm">
-            <Icon name="Target" size={24} />
-          </div>
-          <div>
-             <h3 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Satış Hedefleri</h3>
-             <p className="text-xs text-slate-400 font-medium">Panel özet ekranındaki hedefleriniz.</p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Aylık Ciro Hedefi (₺)</label>
-            <input type="number" value={localSettings.monthlyTarget} onChange={e => setLocalSettings({...localSettings, monthlyTarget: parseFloat(e.target.value)})} className="w-full p-5 bg-slate-50 border border-slate-100 rounded-3xl font-black text-xl text-slate-800" />
-          </div>
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Aylık KG Hedefi</label>
-            <input type="number" value={localSettings.monthlyKgTarget} onChange={e => setLocalSettings({...localSettings, monthlyKgTarget: parseFloat(e.target.value)})} className="w-full p-5 bg-slate-50 border border-slate-100 rounded-3xl font-black text-xl text-slate-800" />
-          </div>
-        </div>
-      </section>
-
-      <button onClick={saveSettings} className="w-full py-8 coffee-gradient text-white rounded-[3rem] font-black shadow-2xl hover:scale-[1.01] transition-all uppercase tracking-widest text-sm">Ayarları Güncelle ve Kaydet</button>
+      <button onClick={save} className="w-full py-8 coffee-gradient text-white rounded-[2.5rem] font-black shadow-2xl hover:scale-[1.02] transition-all uppercase tracking-widest">
+        Tüm Değişiklikleri Kaydet
+      </button>
     </div>
   );
 };

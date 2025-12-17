@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Lead, LeadStatus } from '../types';
 import { Icon } from '../components/Icons';
@@ -23,7 +22,6 @@ export const LeadCenter: React.FC<LeadCenterProps> = ({ leads, onSetLeads }) => 
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [previewEmail, setPreviewEmail] = useState<GeneratedEmail | null>(null);
 
-  // Hazır Kampanya Tanımları
   const campaigns = [
     { id: 'tech', name: 'Teknoloji Ofisleri', query: 'Türkiye genelindeki büyük yazılım ve teknoloji şirketleri', icon: 'Cpu' },
     { id: 'edu', name: 'Özel Okul & Kolejler', query: 'Türkiye genelindeki özel okul zincirleri ve kolejler merkezi', icon: 'GraduationCap' },
@@ -66,7 +64,6 @@ export const LeadCenter: React.FC<LeadCenterProps> = ({ leads, onSetLeads }) => 
       const foundData = JSON.parse(response.text || "[]");
       
       const mappedLeads: Lead[] = foundData.map((l: any) => {
-        // Çalışan sayısına göre paket tahmini
         const monthlyKg = l.estimated_employees ? Math.ceil(l.estimated_employees * 0.5) : 10;
         return {
           id: Math.random().toString(36).substr(2, 9),
@@ -81,7 +78,7 @@ export const LeadCenter: React.FC<LeadCenterProps> = ({ leads, onSetLeads }) => 
           suggestedPackage: {
             packageName: 'Ventus Kurumsal Premium',
             monthlyKg: monthlyKg,
-            price: monthlyKg * 950 // Kargo dahil kurumsal fiyatlandırma
+            price: monthlyKg * 950 
           }
         };
       });
@@ -133,44 +130,43 @@ export const LeadCenter: React.FC<LeadCenterProps> = ({ leads, onSetLeads }) => 
 
   return (
     <div className="space-y-8 pb-24">
-      {/* Auto-Pilot Header */}
-      <div className="slate-gradient p-12 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
+      <div className="slate-gradient p-10 md:p-14 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-emerald-500 rounded-2xl shadow-lg shadow-emerald-900/40">
+            <div className="p-3 bg-emerald-500 rounded-2xl shadow-lg">
               <Icon name="Zap" size={24} className="text-white" />
             </div>
-            <span className="text-xs font-black uppercase tracking-[0.4em] text-emerald-400">Ventus Auto-Pilot v2.0</span>
+            <span className="text-xs font-black uppercase tracking-[0.4em] text-emerald-300">Auto-Pilot v2.0</span>
           </div>
-          <h2 className="text-5xl font-black mb-6 leading-none tracking-tighter">
-            Türkiye'nin Her Yerine <br/>
-            <span className="text-amber-500 italic">Tek Tıkla</span> Satış Yapın.
+          <h2 className="text-4xl md:text-6xl font-black mb-6 leading-[1.1] tracking-tighter">
+            Türkiye Geneli <br/>
+            <span className="text-amber-500 italic underline decoration-amber-500/30">Müşteri Avı</span> Başlatın.
           </h2>
           <p className="text-slate-300 font-medium max-w-xl text-lg mb-10 leading-relaxed">
-            Hedef kitlenizi kendiniz yazmayın. Aşağıdaki kurumsal kategorilerden birini seçin, AI tüm Türkiye'yi tarasın ve size hazır müşteriler getirsin.
+            AI destekli tarayıcımızla sektörünüzdeki en iyi kurumsal müşterileri saniyeler içinde bulun ve teklif gönderin.
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {campaigns.map((camp) => (
               <button
                 key={camp.id}
                 onClick={() => runNationwideScan(camp)}
                 disabled={isScanning}
-                className={`group relative p-6 rounded-3xl border transition-all flex flex-col items-center gap-4 text-center ${
+                className={`group relative p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-4 text-center ${
                   activeCampaign === camp.id 
-                    ? 'bg-amber-500 border-amber-400 scale-95' 
-                    : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                    ? 'bg-amber-600 border-amber-400 scale-95 shadow-inner' 
+                    : 'bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-amber-600'
                 } disabled:opacity-50`}
               >
-                <div className={`p-4 rounded-2xl transition-colors ${activeCampaign === camp.id ? 'bg-white text-amber-600' : 'bg-white/10 text-white group-hover:bg-amber-500'}`}>
+                <div className={`p-4 rounded-2xl transition-all ${activeCampaign === camp.id ? 'bg-white text-amber-700 shadow-xl' : 'bg-slate-700 text-slate-300 group-hover:bg-amber-500 group-hover:text-white'}`}>
                   <Icon name={camp.icon as any} size={28} />
                 </div>
                 <div>
-                  <h4 className="font-black text-sm uppercase tracking-widest">{camp.name}</h4>
-                  <p className="text-[10px] text-slate-400 mt-1 font-bold group-hover:text-slate-200 uppercase">Tüm Türkiye'yi Tara</p>
+                  <h4 className="font-black text-xs uppercase tracking-widest text-white">{camp.name}</h4>
+                  <p className="text-[10px] text-slate-400 mt-2 font-bold group-hover:text-slate-200 uppercase">Taramayı Başlat</p>
                 </div>
                 {activeCampaign === camp.id && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-3xl backdrop-blur-sm">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-3xl backdrop-blur-sm">
                     <Icon name="Loader2" className="animate-spin text-white" size={32} />
                   </div>
                 )}
@@ -178,182 +174,158 @@ export const LeadCenter: React.FC<LeadCenterProps> = ({ leads, onSetLeads }) => 
             ))}
           </div>
         </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-600/10 rounded-full blur-[120px] -mr-48 -mt-48"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-600/10 rounded-full blur-[100px] -ml-32 -mb-32"></div>
       </div>
 
-      {/* Leads List */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-2">
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-center px-6">
-            <h3 className="font-black text-slate-800 text-sm uppercase tracking-[0.2em]">Otomatik Bulunan Fırsatlar ({leads.length})</h3>
+          <div className="flex justify-between items-center px-4">
+            <h3 className="font-black text-slate-700 text-xs uppercase tracking-[0.2em] flex items-center gap-2">
+              <Icon name="List" size={16} className="text-amber-600" />
+              Potansiyel Müşteriler ({leads.length})
+            </h3>
             <div className="flex items-center gap-2">
                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-               <span className="text-[10px] font-black text-slate-400 uppercase">AI Hunter Canlı</span>
+               <span className="text-[10px] font-black text-emerald-600 uppercase">Canlı AI Veritabanı</span>
             </div>
           </div>
 
           {leads.length === 0 ? (
-            <div className="premium-card p-32 text-center border-dashed border-4 border-slate-100 bg-slate-50/30">
+            <div className="premium-card p-32 text-center border-dashed border-4 border-slate-200 bg-white shadow-none">
               <Icon name="Globe" size={64} className="mx-auto mb-6 text-slate-200" />
-              <h4 className="text-xl font-black text-slate-300 uppercase tracking-widest">Türkiye Taraması Bekleniyor</h4>
-              <p className="text-slate-400 text-sm mt-2">Yukarıdaki kategorilerden birine tıklayarak başlayın.</p>
+              <h4 className="text-xl font-black text-slate-300 uppercase tracking-widest">Henüz Av Başlatılmadı</h4>
+              <p className="text-slate-400 text-sm mt-2">Kategorilerden birini seçerek Türkiye'deki şirketleri bulmaya başlayın.</p>
             </div>
           ) : (
             leads.map(lead => (
-              <div key={lead.id} className="premium-card p-8 group relative overflow-hidden hover:shadow-2xl hover:border-amber-400 transition-all">
+              <div key={lead.id} className="premium-card p-8 group relative overflow-hidden hover:shadow-2xl border-2 border-transparent hover:border-amber-500/50 transition-all bg-white">
                 <div className="flex flex-col md:flex-row justify-between gap-8 relative z-10">
                   <div className="flex gap-6">
                     <div className="relative">
-                      <div className="w-20 h-20 bg-slate-100 rounded-[2rem] flex items-center justify-center text-slate-400 group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors shadow-inner">
+                      <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-700 transition-all shadow-inner border border-slate-100">
                         <Icon name="Building2" size={32} />
                       </div>
-                      <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border-2 border-white">
+                      <div className="absolute -top-2 -right-2 bg-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg border-2 border-white">
                         %{lead.relevanceScore}
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                      <h4 className="text-2xl font-black text-slate-900 flex items-center gap-3">
                         {lead.companyName}
                         {lead.website && (
-                          <a href={lead.website} target="_blank" className="p-2 bg-slate-50 rounded-xl text-slate-300 hover:text-amber-600 hover:bg-amber-50 transition-all">
+                          <a href={lead.website} target="_blank" className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-amber-600 hover:bg-amber-100 transition-all">
                             <Icon name="ExternalLink" size={16} />
                           </a>
                         )}
                       </h4>
-                      <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter mt-1">{lead.category}</p>
+                      <p className="text-sm font-bold text-slate-500 uppercase tracking-tighter mt-1">{lead.category}</p>
                       
                       <div className="mt-6 flex flex-wrap items-center gap-4">
-                        <div className="px-4 py-2 bg-amber-50 text-amber-800 rounded-2xl text-xs font-black uppercase border border-amber-100 flex items-center gap-2">
-                           <Icon name="Package" size={14} /> {lead.suggestedPackage?.monthlyKg}KG Paket Önerisi
+                        <div className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-2xl text-xs font-black uppercase border border-emerald-100 flex items-center gap-2">
+                           <Icon name="Package" size={14} /> {lead.suggestedPackage?.monthlyKg}KG / Ay Önerisi
                         </div>
-                        <span className="text-xl font-black text-slate-800 tracking-tighter">₺{lead.suggestedPackage?.price.toLocaleString()} <span className="text-xs font-bold text-slate-400 uppercase">/ Ay</span></span>
+                        <span className="text-xl font-black text-slate-900 tracking-tighter">₺{lead.suggestedPackage?.price.toLocaleString()} <span className="text-xs font-bold text-slate-400 uppercase">/ Aylık</span></span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap md:flex-col gap-3 justify-center">
+                  <div className="flex flex-wrap md:flex-col gap-3 justify-center min-w-[180px]">
                     <button 
                       onClick={() => generateProposal(lead)}
                       disabled={isGenerating === lead.id}
-                      className="px-8 py-4 coffee-gradient text-white rounded-3xl text-sm font-black flex items-center justify-center gap-3 shadow-xl active:scale-95 disabled:opacity-50 transition-all"
+                      className="w-full py-4 bg-slate-900 text-white rounded-2xl text-xs font-black flex items-center justify-center gap-3 shadow-xl hover:bg-amber-700 active:scale-95 disabled:opacity-50 transition-all uppercase tracking-widest"
                     >
-                       <Icon name={isGenerating === lead.id ? "Loader2" : "FileCheck"} className={isGenerating === lead.id ? "animate-spin" : ""} size={20} />
-                       TEKLİF & PDF ÜRET
+                       <Icon name={isGenerating === lead.id ? "Loader2" : "Sparkles"} className={isGenerating === lead.id ? "animate-spin" : ""} size={16} />
+                       AI TEKLİF ÜRET
                     </button>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full">
                       <select 
                         value={lead.status}
                         onChange={(e) => {
                           onSetLeads(leads.map(l => l.id === lead.id ? { ...l, status: e.target.value as any, lastContactDate: new Date().toISOString() } : l));
                         }}
-                        className="flex-1 px-4 py-3 bg-slate-50 border rounded-2xl text-[10px] font-black uppercase text-slate-500 outline-none focus:text-slate-800 focus:bg-white transition-all"
+                        className="flex-1 px-4 py-3 bg-slate-100 border-none rounded-2xl text-[10px] font-black uppercase text-slate-600 outline-none focus:text-slate-900 focus:bg-white transition-all cursor-pointer"
                       >
-                        <option value="new">YENİ</option>
-                        <option value="emailed">TEKLİF GİTTİ</option>
-                        <option value="responded">CEVAP ALINDI</option>
+                        <option value="new">BEKLEMEDE</option>
+                        <option value="emailed">TEKLİF EDİLDİ</option>
+                        <option value="responded">GERİ DÖNÜŞ</option>
                       </select>
-                      <button onClick={() => onSetLeads(leads.filter(l => l.id !== lead.id))} className="p-4 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all">
-                        <Icon name="Trash2" size={20} />
+                      <button onClick={() => onSetLeads(leads.filter(l => l.id !== lead.id))} className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all">
+                        <Icon name="Trash2" size={18} />
                       </button>
                     </div>
                   </div>
                 </div>
-                
-                {/* Visual accent */}
-                <div className="absolute top-0 right-0 w-40 h-40 bg-slate-50 rotate-45 translate-x-20 -translate-y-20 group-hover:bg-amber-50 transition-colors"></div>
               </div>
             ))
           )}
         </div>
 
-        {/* Outreach Stats */}
         <div className="space-y-6">
-          <div className="premium-card p-10 bg-slate-900 text-white relative overflow-hidden">
-             <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-amber-500 mb-6">Türkiye Satış Ağı</h4>
+          <div className="premium-card p-8 bg-slate-900 text-white relative overflow-hidden shadow-2xl">
+             <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-amber-500 mb-8">Performans Metrikleri</h4>
              <div className="space-y-8 relative z-10">
                 <div className="flex justify-between items-end">
                    <div>
-                      <p className="text-5xl font-black">{leads.filter(l => l.status !== 'new').length}</p>
-                      <p className="text-[10px] font-bold uppercase text-slate-400 mt-2">Gönderilen Teklifler</p>
+                      <p className="text-6xl font-black text-white">{leads.filter(l => l.status !== 'new').length}</p>
+                      <p className="text-[10px] font-bold uppercase text-slate-400 mt-2 tracking-widest">Gönderilen Teklifler</p>
                    </div>
-                   <Icon name="Send" size={48} className="text-amber-500/20" />
+                   <div className="p-4 bg-amber-500/10 rounded-2xl">
+                      <Icon name="Send" size={32} className="text-amber-500" />
+                   </div>
                 </div>
-                <div className="space-y-2">
-                   <div className="flex justify-between text-[10px] font-black uppercase">
-                      <span>Kuyruk Verimliliği</span>
+                <div className="space-y-3">
+                   <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                      <span>Pipeline Doluluk Oranı</span>
                       <span className="text-amber-500">%{leads.length > 0 ? (leads.filter(l => l.status !== 'new').length / leads.length * 100).toFixed(0) : 0}</span>
                    </div>
-                   <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                   <div className="w-full bg-white/10 h-3 rounded-full overflow-hidden border border-white/5">
                       <div className="bg-amber-500 h-full transition-all duration-1000" style={{width: `${leads.length > 0 ? (leads.filter(l => l.status !== 'new').length / leads.length * 100) : 0}%`}}></div>
                    </div>
                 </div>
              </div>
-             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-amber-500/5 rounded-full blur-2xl"></div>
+             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl"></div>
           </div>
 
-          <div className="premium-card p-8 border-t-8 border-amber-900">
-             <h4 className="font-black text-slate-800 text-sm mb-4 flex items-center gap-2">
-                <Icon name="Lightbulb" className="text-amber-600" size={18} /> Satış Tavsiyesi
+          <div className="premium-card p-8 bg-amber-50 border-amber-200">
+             <h4 className="font-black text-amber-900 text-xs uppercase mb-4 flex items-center gap-2">
+                <Icon name="Target" className="text-amber-700" size={18} /> Avcı İpucu
              </h4>
-             <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                Özel okul ve kolejler, sabah saatlerinde yüksek tüketim yapar. AI tarafından üretilen tekliflerde "Öğretmenler Odası Premium Deneyimi" vurgusunu kullanmanız dönüşümü %30 artıracaktır.
+             <p className="text-xs text-amber-800 leading-relaxed font-semibold">
+                Kurumsal şirketlere Salı ve Perşembe sabahları saat 10:00 - 11:30 arası gönderilen tekliflerin açılma oranı diğer saatlere göre %45 daha yüksektir. 
              </p>
           </div>
         </div>
       </div>
 
-      {/* Proposal Preview Modal */}
       {previewEmail && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-xl animate-fade-in">
-          <div className="bg-white w-full max-w-4xl rounded-[3.5rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="coffee-gradient p-10 text-white flex justify-between items-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-xl animate-fade-in">
+          <div className="bg-white w-full max-w-3xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="slate-gradient p-10 text-white flex justify-between items-center">
               <div>
-                <h3 className="text-3xl font-black flex items-center gap-4 uppercase tracking-tighter">
-                   <Icon name="Sparkles" size={32} /> Kurumsal Satış Paketi
+                <h3 className="text-3xl font-black flex items-center gap-4 uppercase tracking-tighter italic">
+                   AI Teklif Taslağı
                 </h3>
-                <p className="text-amber-200/60 text-xs font-black uppercase tracking-[0.3em] mt-2">Otomatik Hazırlanan Profesyonel Teklif</p>
+                <p className="text-amber-400 text-xs font-black uppercase tracking-widest mt-1">Sektörel olarak optimize edildi</p>
               </div>
-              <button onClick={() => setPreviewEmail(null)} className="p-4 hover:bg-white/10 rounded-full transition-all">
-                <Icon name="X" size={32} />
+              <button onClick={() => setPreviewEmail(null)} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all">
+                <Icon name="X" size={24} />
               </button>
             </div>
             
-            <div className="p-12 overflow-y-auto space-y-10">
+            <div className="p-10 overflow-y-auto space-y-8 bg-slate-50">
               <div className="space-y-4">
-                <div className="flex items-center justify-between px-2">
-                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Email Taslağı</label>
-                   <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase">
-                      <Icon name="Check" size={12} /> Sektörel Dil Optimize Edildi
-                   </div>
-                </div>
-                <div className="p-8 bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] shadow-inner space-y-6">
-                  <div className="pb-4 border-b border-slate-200 font-black text-xl text-slate-800">
+                <div className="px-8 py-6 bg-white border-2 border-slate-200 rounded-[2rem] shadow-sm space-y-6">
+                  <div className="pb-4 border-b border-slate-100 font-black text-xl text-slate-800 italic">
                      {previewEmail.subject}
                   </div>
-                  <div className="text-base text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
+                  <div className="text-sm text-slate-700 leading-[1.7] font-medium whitespace-pre-wrap">
                      {previewEmail.body}
                   </div>
                 </div>
               </div>
-
-              <div className="premium-card p-8 bg-slate-900 text-white flex items-center justify-between border-none shadow-xl">
-                 <div className="flex items-center gap-6">
-                    <div className="p-4 bg-rose-500/20 text-rose-400 rounded-2xl">
-                       <Icon name="FileText" size={32} />
-                    </div>
-                    <div>
-                       <p className="font-black text-lg uppercase tracking-tight">Teklif_Dökümü_v2.pdf</p>
-                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Görsel Sunum & Fiyat Listesi Eklendi</p>
-                    </div>
-                 </div>
-                 <button className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-2xl text-xs font-black transition-all border border-white/10">ÖNİZLE</button>
-              </div>
             </div>
 
-            <div className="p-10 bg-slate-50 border-t flex flex-col sm:flex-row gap-4">
+            <div className="p-8 bg-white border-t flex flex-col sm:flex-row gap-4">
               <button 
                 onClick={() => {
                   const lead = leads.find(l => l.id === previewEmail.leadId);
@@ -361,18 +333,18 @@ export const LeadCenter: React.FC<LeadCenterProps> = ({ leads, onSetLeads }) => 
                   setPreviewEmail(null);
                   addToast('Teklif mail istemcisine aktarıldı!', 'success');
                 }}
-                className="flex-1 py-6 coffee-gradient text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4"
+                className="flex-1 py-5 bg-amber-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-amber-700 transition-all flex items-center justify-center gap-3"
               >
-                <Icon name="Mail" size={20} /> Teklifi Gönder
+                <Icon name="Mail" size={18} /> TEKLİFİ GÖNDER
               </button>
               <button 
                 onClick={() => {
                    navigator.clipboard.writeText(`Konu: ${previewEmail.subject}\n\n${previewEmail.body}`);
                    addToast('Metin kopyalandı!', 'info');
                 }}
-                className="px-12 py-6 bg-white border-2 border-slate-200 text-slate-600 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-slate-100 transition-all active:scale-95 flex items-center justify-center gap-4"
+                className="px-10 py-5 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-3"
               >
-                <Icon name="Copy" size={20} /> Kopyala
+                <Icon name="Copy" size={18} /> KOPYALA
               </button>
             </div>
           </div>
