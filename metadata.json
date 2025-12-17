@@ -1,0 +1,7 @@
+{
+  "name": "Ventus Roast Premium Dashboard",
+  "description": "Shopify entegrasyonlu, B2B teklif odaklı, gelişmiş dropship ve muhasebe yönetim paneli.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
