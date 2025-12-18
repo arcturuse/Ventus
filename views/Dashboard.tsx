@@ -83,8 +83,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => 
           <h4 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
             <Icon name="Activity" className="text-amber-600" size={16} /> Satış Trendi (15 Gün)
           </h4>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          {/* min-w-0 grid içinde taşmayı önler, minWidth prop'u Recharts hatasını çözer */}
+          <div className="h-[300px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
@@ -108,8 +109,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats, transactions }) => 
           <h4 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
             <Icon name="PieChart" className="text-amber-600" size={16} /> Gelir Dağılımı
           </h4>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          {/* min-w-0 grid içinde taşmayı önler, minWidth prop'u Recharts hatasını çözer */}
+          <div className="h-[300px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={10} dataKey="value">
                   {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
